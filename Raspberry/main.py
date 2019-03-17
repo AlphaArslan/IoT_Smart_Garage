@@ -8,8 +8,9 @@ import time
 
 ##################### Global #####################
 #constants
+PWD = os.path.dirname(os.path.realpath(__file__))       #returns path to project folder
 allowed_url = 'https://raw.githubusercontent.com/Alpha-Itachi/test/master/allowed.txt'
-IMAGE_PATH = '/home/pi/Garage/Release/tmp.jpg'
+IMAGE_PATH = PWD + '/tmp.jpg'
 api_url = 'https://api.openalpr.com/v2/recognize_bytes?recognize_vehicle=1&country=us&secret_key=sk_d1f041e7fe7cef9f91f69fad'
 plate1 = "plate1"
 plate2 = "plate3"
