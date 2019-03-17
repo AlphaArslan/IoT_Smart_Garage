@@ -54,7 +54,7 @@ def chick_US_distance():
                 pass
         end_ti = time.time()
 
-        distance = (end_ti - start-ti)/0.000058        #in cm
+        distance = (end_ti - start_ti)/0.000058        #in cm
         return distance
 
 def servo_angle(angle):
