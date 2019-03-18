@@ -134,6 +134,9 @@ while True :
                         print("Connected .. waiting results")
         r = r.json()
 
+        if (r["vehicles"] < 0.3):
+            print("No cars seen")
+            continue
 
         plate1 = r["results"][0]["plate"]
         try:
