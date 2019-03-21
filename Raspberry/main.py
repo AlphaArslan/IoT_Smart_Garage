@@ -7,10 +7,14 @@ import json
 import time
 import os
 
+import control_DB
+
 ##################### Global #####################
+rejected_flag = True
+
 #constants
 PWD = os.path.dirname(os.path.realpath(__file__))       #returns path to project folder
-allowed_url = 'https://raw.githubusercontent.com/Alpha-Itachi/test/master/allowed.txt'
+# allowed_url = 'https://raw.githubusercontent.com/Alpha-Itachi/test/master/allowed.txt'
 IMAGE_PATH = PWD + '/tmp.jpg'
 api_url = 'https://api.openalpr.com/v2/recognize_bytes?recognize_vehicle=1&country=us&secret_key=sk_d1f041e7fe7cef9f91f69fad'
 plate1 = "plate1"
@@ -76,30 +80,36 @@ GPIO.setup(servo_pin ,GPIO.OUT)
 servo_pwm = GPIO.PWM(servo_pin, 50)                     #50kHz
 servo_pwm.start(0)                                      #it starts at angle zero
 
+######## database
+conn = sqlite3.connect(DB_PATH)
+c = conn.cursor()
+control_DB.init_db()
+
 ######## updating allowed.txt file
-flag = True
-while flag:
-	try:
-		req_allowed = requests.get(allowed_url)
-	except requests.exceptions.ConnectionError:
-		print("Could not connect to the internet .. Please Connect")
-		time.sleep(2)
-	else:			#no problem occuered
-		flag = False
-		print("\t Connected !!")
-		if req_allowed.text.find("404:") == -1 :
-			print("file found online")
-			print("Updating Database")
-			open('allowed.txt', 'w+').write(req_allowed.text)
-		else :
-			print('Could not find file online')
-			print('Using old database stored offline')
-
-	allowed = open('allowed.txt').read()
-
+# flag = True
+# while flag:
+# 	try:
+# 		req_allowed = requests.get(allowed_url)
+# 	except requests.exceptions.ConnectionError:
+# 		print("Could not connect to the internet .. Please Connect")
+# 		time.sleep(2)
+# 	else:			#no problem occuered
+# 		flag = False
+# 		print("\t Connected !!")
+# 		if req_allowed.text.find("404:") == -1 :
+# 			print("file found online")
+# 			print("Updating Database")
+# 			open('allowed.txt', 'w+').write(req_allowed.text)
+# 		else :
+# 			print('Could not find file online')
+# 			print('Using old database stored offline')
+#
+# 	allowed = open('allowed.txt').read()
+#
 
 ###################### loop ######################
 while True :
+        rejected_flag = True
         ######## wait for signal
         # if SEG_WIRE is HIGH (no place inside), Dont do anything
         while GPIO.input(SEG_WIRE) == True :
@@ -153,11 +163,12 @@ while True :
         print("Plate Guess 3 :" + plate3 )
 
         ######## check the plate number
-        if plate1 in allowed:
-                allowed_fun(1)
-        elif plate2 in allowed:
-                allowed_fun(2)
-        elif plate3 in allowed:
-                allowed_fun(3)
-        else:
-                rejected_fun()
+        c.execute("SELECT * FROM cars")
+        s = c.fetchone()
+        while s is not None:
+            if s[1] in (plate1, plate2, plate3):
+                rejected_flag = False
+                allowed_fun(s)
+                break
+        if rejected_flag is True:
+            rejected_fun()
